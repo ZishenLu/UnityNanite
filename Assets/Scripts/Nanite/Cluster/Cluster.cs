@@ -3,42 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEngine;
 
-public struct MeshletEdge
-{
-    public uint first;
-    public uint second;
-    public MeshletEdge(uint aIndex, uint bIndex)
-    {
-        if(aIndex < bIndex)
-        {
-            first = aIndex; second = bIndex;
-        }
-        else
-        {
-            first = bIndex; second = aIndex;
-        }
-    }
-
-    public override bool Equals(object obj)
-    {
-        if(obj is MeshletEdge edge)
-        {
-            return edge.first == first && edge.second == second;
-        }
-        return false;
-    }
-
-    public override int GetHashCode()
-    {
-        return HashCode.Combine(first, second);
-    }
-}
-
-public struct MeshletGroup
-{
-    public List<int> meshlets;
-}
-
 public class Cluster
 {
     private const int METIS_NOPTIONS = 40;
@@ -95,12 +59,6 @@ public class Cluster
         _meshlets = new Meshlet[maxLets];
         _meshletVertices = new uint[maxLets * maxVertices];
         _meshletIndices = new byte[maxLets * maxIndices * 3];
-
-        //uint[] triangles = new uint[_mesh.triangles.Length];
-        //BufferUtil.IntToUInt(_mesh.triangles, triangles);
-
-        //float[] vertices = new float[_mesh.vertices.Length * 3];
-        //BufferUtil.Vector3ToFloat(_mesh.vertices, vertices);
 
         _meshletsCount = NaniteUtil.BuildMeshlets(_meshlets, _meshletVertices, _meshletIndices, _originIndices, 
             (uint)_originIndices.Length, _originVertices, (uint)_originVertices.Length / 3, sizeof(float) * 3, maxVertices, maxIndices, 0.0f);
@@ -238,7 +196,7 @@ public class Cluster
         {
             for (int i = 0; i < group.meshlets.Count; i++)
             {
-                
+                var meshlet = _meshlets[group.meshlets[i]];
             }
         }
     }

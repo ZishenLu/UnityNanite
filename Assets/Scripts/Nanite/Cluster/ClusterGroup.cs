@@ -1,23 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public struct Sphere
-{
-    public Vector3 center;
-    public float radius;
-}
-
-public struct ClusterData
-{
-    public uint[] indices;
-    public uint lod;
-    public uint triangleCount;
-    public Sphere sphere;
-    public Sphere parentSphere;
-    public float error;
-    public float parentError;
-}
-
 public class ClusterGroup
 {
     private Mesh _mesh;
