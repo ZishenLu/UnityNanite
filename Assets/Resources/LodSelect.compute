@@ -1,0 +1,69 @@
+// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CSMain
+
+struct Cluster
+{
+    uint triangleOffset;
+    uint triangleCount;
+    uint lod;
+    float4 sphere;
+    float4 parentSphere;
+    float error;
+    float parentError;
+
+};
+
+StructuredBuffer<Cluster> clusters;
+AppendStructuredBuffer<uint> Result;
+float4 screenSize;
+float4x4 mvp;
+int clustersCount;
+
+float4 TransformSphere(float4 sphere, float4x4 transform)
+{
+    float4 hCenter = float4(sphere.xyz, 1.0f);
+    hCenter = mul(transform, hCenter);
+    float3 center = hCenter.xyz / hCenter.w;
+    float4 radius = float4(sphere.w, 0.f, 0.f, 0.f);
+    radius = mul(transform, radius);
+    float newRadius = length(radius.xyz);
+    return float4(center, newRadius);
+}
+
+float ProjectError2Screen(float4 sphere)
+{
+    if (sphere.w > 999999999)
+    {
+        return sphere.w;
+    }
+    
+    const float d2 = dot(sphere.xyz, sphere.xyz);
+    const float r = sphere.w;
+    return screenSize.y * screenSize.z * r / sqrt(d2 - r*r);
+}
+
+bool IsCulling(Cluster cluster)
+{
+    float4 sphere = float4(cluster.sphere.xyz, max(cluster.error, 10e-10f));
+    sphere = TransformSphere(sphere, mvp);
+    float4 parentSphere = float4(cluster.parentSphere.xyz, max(cluster.parentError, 10e-10f));
+    parentSphere = TransformSphere(parentSphere, mvp);
+    
+    const float error = ProjectError2Screen(sphere);
+    const float parentError = ProjectError2Screen(parentSphere);
+    bool render = error <= screenSize.w && parentError > screenSize.w;
+    return render;
+}
+
+[numthreads(64,1,1)]
+void CSMain (uint3 id : SV_DispatchThreadID)
+{
+    uint clusterId = id.x;
+
+    bool keep = clusterId < clustersCount && IsCulling(clusters[clusterId]);
+    
+    if (keep)
+    {
+        Result.Append(clusterId);
+    }
+}

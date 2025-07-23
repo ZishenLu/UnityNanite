@@ -23,17 +23,39 @@ Shader "Custom/ProceduralShader"
                 float4 color : COLOR;
             };
 
-            StructuredBuffer<uint> _DataBuffer;
+            struct sphere
+            {
+				float3 center;
+				float radius;
+			};
+
+            struct meshlet
+            {
+                uint triangleOffset;
+                uint triangleCount;
+                uint lod;
+                sphere sph;
+                sphere parentSph;
+                float error;
+                float parentError;
+            };
+
+            StructuredBuffer<meshlet> _DataBuffer;
             StructuredBuffer<float3> _VertexBuffer;
+            StructuredBuffer<uint> _IndexBuffer;
+            StructuredBuffer<uint> _ResultBuffer;
 
             v2f vert (uint vertexID : SV_VERTEXID, uint instanceID : SV_INSTANCEID)
             {
                 v2f o;
-                int index = vertexID + instanceID * 103 * 3;
-                int dindex = _DataBuffer[index];
-                float3 pos = _VertexBuffer[dindex];
+                uint actulId = _ResultBuffer[instanceID];
+                uint offset = _DataBuffer[actulId].triangleOffset;
+                if(vertexID >= _DataBuffer[actulId].triangleCount * 3) vertexID = _DataBuffer[actulId].triangleCount * 3 - 1;
+                int index = _IndexBuffer[offset + vertexID];
+                // int dindex = _DataBuffer[index];
+                float3 pos = _VertexBuffer[index];
                 o.pos = TransformWorldToHClip(pos.xyz);
-                float seed = fmod(instanceID, 123.456);
+                float seed = fmod(actulId, 123.456);
                 float3 randomColor = frac(sin(float3(seed, seed+1, seed+2)) * 43758.5453);
                 o.color = float4(randomColor, 1); // Ä¬ÈÏ°×É«
                 return o;

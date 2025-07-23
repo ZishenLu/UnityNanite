@@ -28,11 +28,24 @@ public class NaniteWindow : EditorWindow
     private void GenerateMeshlet()
     {
         ClusterMgr.Inst.BuildMeshlets(_mesh);
-        //ClusterMgr.Inst.ReadDatas();
-        //Vector3[] vertices = ClusterMgr.Inst.ReadVerticesDatas();
+        //var datas = ClusterMgr.Inst.ReadDatas();
+        //for (int i = 0; i < datas.Length; i++)
+        //{
+        //    var data = datas[i];
+        //    Debug.Log($" {i}: error: {data.error}, parentError: {data.parentError}, sphere: {data.sphere}, parentSphere: {data.parentSphere}");
+        //}
 
-        //Debug.Log("Load: "+vertices.Length + " mesh: " + _mesh.vertices.Length);
 
         //Debug.Log("Count: " + ClusterMgr.Inst.Count);
+    }
+
+    private float GetFloat(Vector3 center, Vector3 point, float radius)
+    {
+        return GetPower2(center - point) - radius * radius;
+    }
+
+    private float GetPower2(Vector3 center)
+    {
+        return center.x * center.x + center.y * center.y + center.z * center.z;
     }
 }
